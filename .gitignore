@@ -1,0 +1,36 @@
+# Node modules in both frontend and backend
+frontend/node_modules/
+backend/node_modules/
+
+# Build artifacts
+frontend/build/
+backend/build/
+frontend/dist/
+backend/dist/
+
+# Environment variable files
+frontend/.env
+backend/.env
+frontend/.env.*
+backend/.env.*
+
+# Logs
+frontend/npm-debug.log*
+backend/npm-debug.log*
+frontend/yarn-debug.log*
+backend/yarn-debug.log*
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.idea/
+*.vscode/
+
+# Test coverage
+frontend/coverage/
+backend/coverage/
+
+# PM2 ecosystem config (if used)
+ecosystem.config.js
