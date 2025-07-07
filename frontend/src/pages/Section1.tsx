@@ -4,10 +4,10 @@ import {
   Box,
   Typography,
   TextField,
-  Grid,
   Button,
   Alert,
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import { useNavigate } from "react-router-dom";
 import { validateSectionForm } from "../utils/validateSectionForm";
 import type { ComponentConfig, ComponentType } from "../types/config";
