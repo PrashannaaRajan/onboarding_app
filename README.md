@@ -1,6 +1,6 @@
-# Zealthy – Custom Onboarding Flow
+# Custom Onboarding Flow
 
-A full-stack onboarding application built as part of a technical exercise for Zealthy. This app allows admins to dynamically configure the user onboarding experience via a drag-and-drop-style section layout, while users proceed through a step-by-step wizard-style flow.
+This app allows admins to dynamically configure the user onboarding experience via a drag-and-drop-style section layout, while users proceed through a step-by-step wizard-style flow.
 
 LIVE DEMO => https://d34ki3igfzt3k2.cloudfront.net/
 ---
