@@ -13,7 +13,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/onboarding", onboardingRoutes);
 app.use("/api/admin", configRoutes);
-app.use("/api/data", dataRoutes);
+app.use("/api", dataRoutes);
 
 const PORT = process.env["PORT"] || 3000;
 app.listen(PORT);
