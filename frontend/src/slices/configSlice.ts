@@ -11,7 +11,6 @@ interface ConfigState {
   loading: boolean;
   error: string | null;
   sectionCount: number;
-  curretSection?: number;
 }
 
 const initialState: ConfigState = {

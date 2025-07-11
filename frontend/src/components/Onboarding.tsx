@@ -1,11 +1,14 @@
 import { Stepper, Step, StepLabel, Container } from "@mui/material";
+import { useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
+import type { RootState } from "../store";
 
-const Onboarding = ({ sections }: { sections: number[] }) => {
+const Onboarding = () => {
   const location = useLocation();
+  const sectionCount = useSelector((state: RootState) => state.admin.sectionCount);
 
   // Dynamically generate steps: "Login", "Section 1", ..., "Section N"
-  const steps = ["Login", ...sections.map((n) => `Section ${n}`)];
+  const steps = ["Login", ...Array.from({ length: sectionCount }, (_, i) => i + 1).map((n) => `Section ${n}`)];
 
   // Determine active step based on pathname
   let activeStep = 0;

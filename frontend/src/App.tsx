@@ -8,25 +8,25 @@ import SectionRenderer from "./pages/SectionRenderer";
 import { fetchConfig } from "./slices/configSlice";
 import type { RootState, AppDispatch } from "./store";
 import { useDispatch, useSelector } from "react-redux";
+import NotFound from "./components/NotFound";
 
 const App = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const config = useSelector((state: RootState) => state.admin.config);
+  const sectionCount = useSelector((state: RootState) => state.admin.sectionCount);
 
   useEffect(() => {
     dispatch(fetchConfig());
   }, [dispatch]);
 
-  const sections = [...new Set(config.map((c) => c.section))];
 
   return (
     <Routes>
       <Route path="/admin" element={<Admin />} />
       <Route path="/data" element={<Data />} />
 
-      <Route path="/" element={<Onboarding sections={sections} />}>
+      <Route path="/" element={<Onboarding />}>
         <Route index element={<Login />} />
-        {sections.map((section) => (
+        {Array.from({ length: sectionCount }, (_, i) => i + 1).map((section) => (
           <Route
             key={section}
             path={`section-${section}`}
@@ -34,6 +34,7 @@ const App = () => {
           />
         ))}
       </Route>
+       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
