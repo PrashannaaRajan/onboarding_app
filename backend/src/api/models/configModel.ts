@@ -28,7 +28,7 @@ Config.init(
   {
     sequelize,
     tableName: "config",
-    timestamps: false, // This table doesn’t have created_at or updated_at
+    timestamps: false,
   }
 );
 

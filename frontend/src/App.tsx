@@ -1,24 +1,23 @@
-import { useState, useEffect } from "react";
-import { fetchComponentConfig } from "./services/config";
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Onboarding from "./components/Onboarding";
 import Admin from "./pages/Admin";
 import Data from "./pages/Data";
 import Login from "./pages/Login";
 import SectionRenderer from "./pages/SectionRenderer";
+import { fetchConfig } from "./slices/configSlice";
+import type { RootState, AppDispatch } from "./store";
+import { useDispatch, useSelector } from "react-redux";
 
 const App = () => {
-  const [sections, setSections] = useState<number[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const config = useSelector((state: RootState) => state.admin.config);
 
   useEffect(() => {
-    fetchComponentConfig().then((config) => {
-      sessionStorage.setItem("config", JSON.stringify(config));
-      const sections = [...new Set(config.map((c) => c.section))];
-      const lastSection = Math.max(...config.map((c) => c.section));
-      sessionStorage.setItem("sectionCount", lastSection.toString());
-      setSections(sections);
-    });
-  }, []);
+    dispatch(fetchConfig());
+  }, [dispatch]);
+
+  const sections = [...new Set(config.map((c) => c.section))];
 
   return (
     <Routes>

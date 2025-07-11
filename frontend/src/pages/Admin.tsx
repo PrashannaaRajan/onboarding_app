@@ -17,78 +17,73 @@ import {
   TextField,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../store";
+import { fetchConfig, updateConfigThunk } from "../slices/configSlice";
 import type { ComponentConfig } from "../types/config";
-import {
-  fetchComponentConfig,
-  updateComponentConfig,
-} from "../services/config";
 
 const Admin = () => {
-  const [config, setConfig] = useState<ComponentConfig[]>([]);
-  const [isEdited, setIsEdited] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const config = useSelector((state: RootState) => state.admin.config);
+  const [localConfig, setLocalConfig] = useState<ComponentConfig[]>([]);
   const [numSections, setNumSections] = useState(1);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isEdited, setIsEdited] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchComponentConfig()
-      .then((res) => {
-        setConfig(res);
-        const maxSection = Math.max(...res.map((c: ComponentConfig) => c.section));
-        setNumSections(maxSection);
-      })
-      .catch(() => setError("Failed to load config"));
-  }, []);
+    dispatch(fetchConfig());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (config.length > 0) {
+      setLocalConfig(config);
+      const maxSection = Math.max(...config.map((c) => c.section));
+      setNumSections(maxSection);
+    }
+  }, [config]);
 
   const handleChange = (index: number, newSection: number) => {
-    const updatedConfig = [...config];
-    updatedConfig[index] = { ...updatedConfig[index], section: newSection };
-    setConfig(updatedConfig);
+    const updated = [...localConfig];
+    updated[index] = { ...updated[index], section: newSection };
+    setLocalConfig(updated);
+    setIsEdited(true);
   };
 
   const handleNumSectionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    
-  const value = Number(e.target.value);
-  if (isNaN(value) || value < 1) {
-    return;
-    }
-  const updatedConfig = config.map((item) =>
-    item.section > value ? { ...item, section: value } : item
-  );
+    const value = Number(e.target.value);
+    if (isNaN(value) || value < 1) return;
 
-  setConfig(updatedConfig);
-  setNumSections(value);
-  setError("");
-};
+    const updated = localConfig.map((item) =>
+      item.section > value ? { ...item, section: value } : item
+    );
+    setLocalConfig(updated);
+    setNumSections(value);
+    setError("");
+  };
 
-  const handleNumSectionBlur = (e: { target: { value: string; }; }) => {
-    const value = parseInt(e.target.value);
-    if (isNaN(value) || value < 1 || value > config.length) {
-      setError("Number of sections must be between 1 and " + config.length);
-      setNumSections(config.length);
-      setMessage("");
-    } else {
-      const updatedConfig = config.map((item) =>
-    item.section > value ? { ...item, section: value } : item
-  );
-
-  setConfig(updatedConfig);
-  setNumSections(value);
-      setError("");
+  const handleNumSectionBlur = () => {
+    if (numSections > localConfig.length) {
+      setError(
+        "Number of sections must be between 1 and " + localConfig.length
+      );
+      setNumSections(localConfig.length);
+      return;
     }
   };
+
   const handleSubmit = async () => {
     const sectionMap: Record<number, number> = {};
-
-    config.forEach((item) => {
+    localConfig.forEach((item) => {
       if (item.section <= numSections) {
         sectionMap[item.section] = (sectionMap[item.section] || 0) + 1;
       }
     });
 
-    const allSectionsCovered = Array.from({ length: numSections }, (_, i) =>
-      i + 1
+    const allSectionsCovered = Array.from(
+      { length: numSections },
+      (_, i) => i + 1
     ).every((s) => sectionMap[s] > 0);
 
     if (!allSectionsCovered) {
@@ -98,11 +93,10 @@ const Admin = () => {
     }
 
     try {
-      await updateComponentConfig(config);
-      setIsEdited(true);
+      await dispatch(updateConfigThunk(localConfig));
       setMessage("Configuration updated successfully");
       setError("");
-    } catch (err) {
+    } catch {
       setError("Failed to update config");
       setMessage("");
     }
@@ -110,7 +104,7 @@ const Admin = () => {
 
   const handleBackBtn = () => {
     navigate("/");
-    isEdited && window.location.reload(); // Reload to apply changes
+    if (isEdited) window.location.reload();
   };
 
   return (
@@ -123,27 +117,18 @@ const Admin = () => {
       </Typography>
 
       <TextField
-
         label="Number of Sections"
         type="number"
         value={numSections}
         onChange={handleNumSectionsChange}
-        fullWidth
-        sx={{ mb: 3, width: '20%'}}
-        inputProps={{ min: 1  }}
         onBlur={handleNumSectionBlur}
+        fullWidth
+        sx={{ mb: 3, width: "20%" }}
+        inputProps={{ min: 1 }}
       />
 
-      {message && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {message}
-        </Alert>
-      )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      {message && <Alert severity="success">{message}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
 
       <TableContainer component={Paper}>
         <Table>
@@ -154,20 +139,24 @@ const Admin = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {config.map((item, index) => (
+            {localConfig.map((item, index) => (
               <TableRow key={item.component}>
                 <TableCell>{item.component}</TableCell>
                 <TableCell>
                   <FormControl fullWidth>
                     <Select
                       value={item.section}
-                      onChange={(e) => handleChange(index, Number(e.target.value))}
+                      onChange={(e) =>
+                        handleChange(index, Number(e.target.value))
+                      }
                     >
-                      {Array.from({ length: numSections }, (_, i) => i + 1).map((s) => (
-                        <MenuItem key={s} value={s}>
-                          Section {s}
-                        </MenuItem>
-                      ))}
+                      {Array.from({ length: numSections }, (_, i) => i + 1).map(
+                        (s) => (
+                          <MenuItem key={s} value={s}>
+                            Section {s}
+                          </MenuItem>
+                        )
+                      )}
                     </Select>
                   </FormControl>
                 </TableCell>

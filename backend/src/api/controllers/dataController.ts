@@ -1,12 +1,11 @@
-import { Request, Response } from 'express';
-import { fetchAllUsers } from '../services/userService';
+import { Response } from "express";
+import { fetchAllUsers } from "../services/userService";
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await fetchAllUsers();
-    res.json(users);
+    res.status(200).json(users);
   } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).json({ error: 'Failed to fetch user data' });
+    res.status(500).json({ error: "Failed to fetch user data" });
   }
 };

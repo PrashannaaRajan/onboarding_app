@@ -1,5 +1,5 @@
-import React from 'react';
-import { TextField } from '@mui/material';
+import React from "react";
+import { TextField } from "@mui/material";
 
 interface Props {
   value: string;
@@ -14,7 +14,7 @@ const AboutMeField: React.FC<Props> = ({ value, onChange }) => {
       rows={4}
       fullWidth
       value={value}
-      onChange={(e) => onChange('about_me', e.target.value)}
+      onChange={(e) => onChange("about_me", e.target.value)}
     />
   );
 };

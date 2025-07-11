@@ -1,5 +1,5 @@
-import React from 'react';
-import { TextField } from '@mui/material';
+import React from "react";
+import { TextField } from "@mui/material";
 
 interface Props {
   value: string;
@@ -14,7 +14,7 @@ const BirthdateField: React.FC<Props> = ({ value, onChange }) => {
       fullWidth
       InputLabelProps={{ shrink: true }}
       value={value}
-      onChange={(e) => onChange('birthdate', e.target.value)}
+      onChange={(e) => onChange("birthdate", e.target.value)}
     />
   );
 };

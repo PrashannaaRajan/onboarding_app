@@ -26,24 +26,24 @@ export const fetchAllUsers = async () => {
   return users;
 };
 
-export const handleAuthService = async (email: string, password: string) => {
+export const handleAuthService = async (email: string, password: string): Promise<{ token: string; userId: string; section: number; }> => {
   const user = await User.findOne({ where: { email } });
 
   if (user) {
-  const lastSection: number = await Config.max("section");
+    const lastSection: number = await Config.max("section");
 
     if (user.section > lastSection) {
       throw new Error("completed");
     }
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid: boolean = await bcrypt.compare(password, user.password);
     if (!valid) {
       throw new Error("invalid");
     }
 
-    const token = jwt.sign(
+    const token: string = jwt.sign(
       { userId: user.id },
-      process.env.JWT_SECRET as string,
+      process.env["JWT_SECRET"] as string,
       {
         expiresIn: "1d",
       }
@@ -51,12 +51,12 @@ export const handleAuthService = async (email: string, password: string) => {
 
     return { token, userId: user.id, section: user.section };
   } else {
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ email, password: hashed });
+    const hashed: string = await bcrypt.hash(password, 10);
+    const newUser: User = await User.create({ email, password: hashed });
 
     const token = jwt.sign(
       { userId: newUser.id },
-      process.env.JWT_SECRET as string,
+      process.env["JWT_SECRET"] as string,
       {
         expiresIn: "1d",
       }
@@ -97,17 +97,17 @@ export const saveOnboardingSection = async (
 
   if (allowedComponents.includes("address")) {
     const { street, city, state, zip } = body;
-    if (street) updates.street = street;
-    if (city) updates.city = city;
-    if (state) updates.state = state;
-    if (zip) updates.zip = zip;
+    if (street) updates["street"] = street;
+    if (city) updates["city"] = city;
+    if (state) updates["state"] = state;
+    if (zip) updates["zip"] = zip;
   }
 
   if (Object.keys(updates).length === 0) {
     throw new Error("no_valid_fields");
   }
 
-  updates.section = section + 1;
+  updates["section"] = section + 1;
 
   await User.update(updates, { where: { id: userId } });
 

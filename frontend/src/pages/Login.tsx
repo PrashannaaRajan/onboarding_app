@@ -9,7 +9,9 @@ import {
   Alert,
   Paper,
 } from "@mui/material";
-import { login } from "../services/auth";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../store";
+import { handleLogin } from "../slices/userSlice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,17 +20,19 @@ const Login = () => {
     email?: string;
     password?: string;
   }>({});
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const token = sessionStorage.getItem("token");
-  const currentSection = sessionStorage.getItem("currentSection");
+  const dispatch = useDispatch<AppDispatch>();
+  const { token, currentSection, error } = useSelector(
+    (state: RootState) => state.user
+  );
 
+  // Redirect if already logged in
   useEffect(() => {
     if (token && currentSection) {
       navigate(`/section-${currentSection}`);
     }
-  }, []);
+  }, [token, currentSection, navigate]);
 
   const validate = () => {
     const errors: typeof fieldErrors = {};
@@ -50,18 +54,10 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
     if (!validate()) return;
 
-    try {
-      const { token, section: currentSection } = await login(email, password);
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem("currentSection", currentSection.toString());
-      navigate(`/section-${currentSection}`);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Login failed");
-    }
+    // Dispatch login action
+    dispatch(handleLogin({ email, password }));
   };
 
   return (
@@ -70,7 +66,6 @@ const Login = () => {
         <Typography variant="h5" component="h1" gutterBottom textAlign="center">
           Welcome to Onboarding
         </Typography>
-
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
           <TextField
             label="Email"
@@ -83,7 +78,6 @@ const Login = () => {
             error={Boolean(fieldErrors.email)}
             helperText={fieldErrors.email}
           />
-
           <TextField
             label="Password"
             type="password"
@@ -95,19 +89,16 @@ const Login = () => {
             error={Boolean(fieldErrors.password)}
             helperText={fieldErrors.password}
           />
-
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}
             </Alert>
           )}
-
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
             Continue
           </Button>
         </Box>
       </Paper>
-
       <Button
         variant="outlined"
         fullWidth
@@ -116,7 +107,6 @@ const Login = () => {
       >
         Go to Admin
       </Button>
-
       <Button
         variant="outlined"
         fullWidth

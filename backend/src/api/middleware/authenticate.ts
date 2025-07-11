@@ -15,16 +15,28 @@ export const authenticate = (
 
   const token = authHeader.split(" ")[1];
 
+  if (!token) {
+    res.status(401).json({ error: "Missing token" });
+    return;
+  }
+
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      userId: number;
-    };
+    const jwtSecret = process.env["JWT_SECRET"];
+    if (!jwtSecret) {
+      res.status(500).json({ error: "JWT secret not configured" });
+      return;
+    }
+    const decoded = jwt.verify(token, jwtSecret) as { userId?: number };
+
+    if (!decoded.userId) {
+      res.status(401).json({ error: "Token payload missing userId" });
+      return;
+    }
 
     (req as any).userId = decoded.userId;
 
     next();
   } catch (err) {
-    console.error("Auth error:", err);
     res.status(401).json({ error: "Invalid or expired token" });
   }
 };

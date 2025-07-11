@@ -1,11 +1,14 @@
-import { Request, Response } from 'express';
-import { handleAuthService } from '../services/userService';
+import { Request, Response } from "express";
+import { handleAuthService } from "../services/userService";
 
-export const handleAuth = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+export const handleAuth = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, password }: { email?: string; password?: string } = req.body;
 
   if (!email || !password) {
-    res.status(400).json({ error: 'Email and password required' });
+    res.status(400).json({ error: "Email and password required" });
     return;
   }
 
@@ -13,13 +16,12 @@ export const handleAuth = async (req: Request, res: Response): Promise<void> => 
     const result = await handleAuthService(email, password);
     res.status(200).json(result);
   } catch (err: any) {
-    if (err.message === 'completed') {
-      res.status(400).json({ error: 'You have already completed onboarding' });
-    } else if (err.message === 'invalid') {
-      res.status(401).json({ error: 'Invalid credentials' });
+    if (err.message === "completed") {
+      res.status(400).json({ error: "You have already completed onboarding" });
+    } else if (err.message === "invalid") {
+      res.status(401).json({ error: "Invalid credentials" });
     } else {
-      console.error('Auth error:', err);
-      res.status(500).json({ error: 'Server error, please try again' });
+      res.status(500).json({ error: "Server error, please try again" });
     }
   }
 };

@@ -1,7 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../db"; // your Sequelize instance
+import { sequelize } from "../db";
 
-// Define TypeScript types for model attributes
 interface UserAttributes {
   id: string;
   email: string;
@@ -16,7 +15,6 @@ interface UserAttributes {
   created_at?: Date;
 }
 
-// Optional fields for creation (handled by defaults)
 type UserCreationAttributes = Optional<
   UserAttributes,
   | "id"
@@ -51,7 +49,7 @@ User.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4, // generates UUID using Sequelize
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     email: {
@@ -93,7 +91,7 @@ User.init(
   {
     sequelize,
     tableName: "users",
-    timestamps: false, // because you're manually defining `created_at`
+    timestamps: false,
   }
 );
 

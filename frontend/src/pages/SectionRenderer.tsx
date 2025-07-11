@@ -3,27 +3,29 @@ import { Container, Typography, Button, Box, Alert } from "@mui/material";
 import AddressFields from "../components/AddressFields";
 import BirthdateField from "../components/BirthdateField";
 import AboutMeField from "../components/AboutMeField";
-import type { ComponentConfig } from "../types/config";
 import { submitSectionData } from "../services/onboarding";
 import { useNavigate } from "react-router-dom";
 import { validateSectionForm } from "../utils/validateSectionForm";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../store";
+import { setCurrentSection, logoutUser } from "../slices/userSlice";
 
 const SectionRenderer = ({ section }: { section: number }) => {
   const navigate = useNavigate();
-  const config: ComponentConfig[] = JSON.parse(
-    sessionStorage.getItem("config") || "[]"
+  const dispatch = useDispatch();
+  const config = useSelector((state: RootState) => state.admin.config);
+  const lastSection = useSelector(
+    (state: RootState) => state.admin.sectionCount
   );
-  const lastSection = JSON.parse(sessionStorage.getItem("sectionCount") || "1");
+  const token = useSelector((state: RootState) => state.user.token);
   const components = config
     .filter((c) => c.section === section)
     .map((c) => c.component);
-  const token = sessionStorage.getItem("token");
-
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
   const handleChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -32,14 +34,16 @@ const SectionRenderer = ({ section }: { section: number }) => {
       setError(validationError);
       return;
     }
+
     try {
       await submitSectionData(section, formData, token!);
+
       if (section === lastSection) {
+        dispatch(logoutUser());
         alert("All sections completed! Redirecting to data page.");
-        sessionStorage.removeItem("token");
         navigate("/data");
       } else {
-        sessionStorage.setItem("currentSection", (section + 1).toString());
+        dispatch(setCurrentSection(section + 1));
         setError("");
         navigate(`/section-${section + 1}`);
       }
@@ -49,19 +53,19 @@ const SectionRenderer = ({ section }: { section: number }) => {
   };
 
   const handleBackBtn = () => {
-    if (section == 1) {
-      sessionStorage.removeItem("token");
+    if (section === 1) {
+      dispatch(logoutUser());
       navigate("/");
-      return;
+    } else {
+      dispatch(setCurrentSection(section - 1));
+      navigate(`/section-${section - 1}`);
     }
-    sessionStorage.setItem("currentSection", (section - 1).toString());
-    navigate(`/section-${section - 1}`);
   };
 
   return (
     <Container maxWidth="sm" sx={{ mt: 5 }}>
       <Button variant="outlined" onClick={handleBackBtn} sx={{ mb: 3 }}>
-        {section == 1 ? "Logout" : "Back"}
+        {section === 1 ? "Logout" : "Back"}
       </Button>
       <Typography variant="h4" gutterBottom>
         Section {section}

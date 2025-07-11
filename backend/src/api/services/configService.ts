@@ -1,8 +1,8 @@
-import Config from '../models/configModel';
+import Config from "../models/configModel";
 
 export const fetchConfig = async () => {
   return await Config.findAll({
-    attributes: ['component', 'section'],
+    attributes: ["component", "section"],
   });
 };
 
@@ -23,6 +23,6 @@ export const updateConfigSection = async (
     return { success: true };
   } catch (err) {
     await transaction.rollback();
-    throw new Error('Failed to update configuration');
+    throw new Error("Failed to update configuration");
   }
 };
