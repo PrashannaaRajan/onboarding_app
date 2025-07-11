@@ -14,6 +14,7 @@ import {
   FormControl,
   Button,
   Alert,
+  TextField,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { ComponentConfig } from "../types/config";
@@ -24,6 +25,8 @@ import {
 
 const Admin = () => {
   const [config, setConfig] = useState<ComponentConfig[]>([]);
+  const [isEdited, setIsEdited] = useState(false);
+  const [numSections, setNumSections] = useState(1);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -31,8 +34,9 @@ const Admin = () => {
   useEffect(() => {
     fetchComponentConfig()
       .then((res) => {
-        const data = res.data;
-        setConfig(data);
+        setConfig(res);
+        const maxSection = Math.max(...res.map((c: ComponentConfig) => c.section));
+        setNumSections(maxSection);
       })
       .catch(() => setError("Failed to load config"));
   }, []);
@@ -43,24 +47,59 @@ const Admin = () => {
     setConfig(updatedConfig);
   };
 
-  const handleSubmit = async () => {
-    const sectionCounts = config.reduce(
-      (counts, item) => {
-        if (item.section === 1) counts.section1 += 1;
-        if (item.section === 2) counts.section2 += 1;
-        return counts;
-      },
-      { section1: 0, section2: 0 }
-    );
+  const handleNumSectionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    
+  const value = Number(e.target.value);
+  if (isNaN(value) || value < 1) {
+    return;
+    }
+  const updatedConfig = config.map((item) =>
+    item.section > value ? { ...item, section: value } : item
+  );
 
-    if (sectionCounts.section1 === 0 || sectionCounts.section2 === 0) {
+  setConfig(updatedConfig);
+  setNumSections(value);
+  setError("");
+};
+
+  const handleNumSectionBlur = (e: { target: { value: string; }; }) => {
+    const value = parseInt(e.target.value);
+    if (isNaN(value) || value < 1 || value > config.length) {
+      setError("Number of sections must be between 1 and " + config.length);
+      setNumSections(config.length);
+      setMessage("");
+    } else {
+      const updatedConfig = config.map((item) =>
+    item.section > value ? { ...item, section: value } : item
+  );
+
+  setConfig(updatedConfig);
+  setNumSections(value);
+      setError("");
+    }
+  };
+  const handleSubmit = async () => {
+    const sectionMap: Record<number, number> = {};
+
+    config.forEach((item) => {
+      if (item.section <= numSections) {
+        sectionMap[item.section] = (sectionMap[item.section] || 0) + 1;
+      }
+    });
+
+    const allSectionsCovered = Array.from({ length: numSections }, (_, i) =>
+      i + 1
+    ).every((s) => sectionMap[s] > 0);
+
+    if (!allSectionsCovered) {
       setError("Each section must have at least one component.");
       setMessage("");
       return;
     }
 
     try {
-      updateComponentConfig(config);
+      await updateComponentConfig(config);
+      setIsEdited(true);
       setMessage("Configuration updated successfully");
       setError("");
     } catch (err) {
@@ -69,18 +108,31 @@ const Admin = () => {
     }
   };
 
+  const handleBackBtn = () => {
+    navigate("/");
+    isEdited && window.location.reload(); // Reload to apply changes
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
-      <Button
-        variant="outlined"
-        sx={{ mt: 4, mb: 4 }}
-        onClick={() => navigate("/")}
-      >
+      <Button variant="outlined" sx={{ mt: 4, mb: 4 }} onClick={handleBackBtn}>
         Back to Login
       </Button>
       <Typography variant="h4" gutterBottom>
         Admin Configuration
       </Typography>
+
+      <TextField
+
+        label="Number of Sections"
+        type="number"
+        value={numSections}
+        onChange={handleNumSectionsChange}
+        fullWidth
+        sx={{ mb: 3, width: '20%'}}
+        inputProps={{ min: 1  }}
+        onBlur={handleNumSectionBlur}
+      />
 
       {message && (
         <Alert severity="success" sx={{ mb: 2 }}>
@@ -109,12 +161,13 @@ const Admin = () => {
                   <FormControl fullWidth>
                     <Select
                       value={item.section}
-                      onChange={(e) =>
-                        handleChange(index, e.target.value as number)
-                      }
+                      onChange={(e) => handleChange(index, Number(e.target.value))}
                     >
-                      <MenuItem value={1}>Section 1</MenuItem>
-                      <MenuItem value={2}>Section 2</MenuItem>
+                      {Array.from({ length: numSections }, (_, i) => i + 1).map((s) => (
+                        <MenuItem key={s} value={s}>
+                          Section {s}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </TableCell>

@@ -1,21 +1,39 @@
+import { useState, useEffect } from "react";
+import { fetchComponentConfig } from "./services/config";
 import { Routes, Route } from "react-router-dom";
-import Section1 from "./pages/Section1";
-import Section2 from "./pages/Section2";
-import Login from "./pages/Login";
+import Onboarding from "./components/Onboarding";
 import Admin from "./pages/Admin";
 import Data from "./pages/Data";
-import Onboarding from "./components/Onboarding";
+import Login from "./pages/Login";
+import SectionRenderer from "./pages/SectionRenderer";
 
 const App = () => {
+  const [sections, setSections] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetchComponentConfig().then((config) => {
+      sessionStorage.setItem("config", JSON.stringify(config));
+      const sections = [...new Set(config.map((c) => c.section))];
+      const lastSection = Math.max(...config.map((c) => c.section));
+      sessionStorage.setItem("sectionCount", lastSection.toString());
+      setSections(sections);
+    });
+  }, []);
+
   return (
     <Routes>
       <Route path="/admin" element={<Admin />} />
       <Route path="/data" element={<Data />} />
 
-      <Route path="/" element={<Onboarding />}>
+      <Route path="/" element={<Onboarding sections={sections} />}>
         <Route index element={<Login />} />
-        <Route path="section-1" element={<Section1 />} />
-        <Route path="section-2" element={<Section2 />} />
+        {sections.map((section) => (
+          <Route
+            key={section}
+            path={`section-${section}`}
+            element={<SectionRenderer section={section} />}
+          />
+        ))}
       </Route>
     </Routes>
   );

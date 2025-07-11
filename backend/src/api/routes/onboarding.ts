@@ -4,6 +4,6 @@ import { saveOnboardingData } from "../controllers/onboardingController";
 
 const router = express.Router();
 
-router.post("/page/:section", authenticate, saveOnboardingData);
+router.post("/section/:section", authenticate, saveOnboardingData);
 
 export default router;

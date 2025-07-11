@@ -1,32 +1,21 @@
-export const validateSectionForm = (config: string[], formData: FormData) => {
-  const errors: Record<string, string> = {};
-
-  config.forEach((component) => {
+export const validateSectionForm = (
+  components: string[],
+  formData: any
+): string | null => {
+  for (const component of components) {
     if (component === "address") {
-      if (!formData.street) errors.street = "Required";
-      if (!formData.city) errors.city = "Required";
-      if (!formData.state) errors.state = "Required";
-      if (!formData.zip) errors.zip = "Required";
+      const requiredFields = ["street", "city", "state", "zip"];
+      for (const field of requiredFields) {
+        if (!formData[field]) return `${field} is required`;
+      }
     } else if (component === "birthdate") {
-      if (!formData.birthdate) {
-        errors.birthdate = "Required";
-      } else {
-        const selectedDate = new Date(formData.birthdate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (selectedDate > today) {
-          errors.birthdate = "Date cannot be in the future";
-        }
-      }
-    } else {
-      if (!formData[component]) {
-        errors[component] = "Required";
-      }
-    }
-  });
-
-  return errors;
+      const birthdate = formData.birthdate;
+      if (!birthdate) return "Birthdate is required";
+      const selectedDate = new Date(birthdate);
+      const today = new Date();
+      if (selectedDate > today) return "Birthdate cannot be in the future";
+    } else if (!formData[component])
+      return `${component.replace("_", " ")} is required`;
+  }
+  return null;
 };
-
-type FormData = Record<string, string>;

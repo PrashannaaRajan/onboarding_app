@@ -22,12 +22,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   const token = sessionStorage.getItem("token");
-  const section = sessionStorage.getItem("section");
+  const currentSection = sessionStorage.getItem("currentSection");
 
   useEffect(() => {
-    if (token && section) {
-      if (section === "1") navigate("/section-1");
-      else if (section === "2") navigate("/section-2");
+    if (token && currentSection) {
+      navigate(`/section-${currentSection}`);
     }
   }, []);
 
@@ -56,13 +55,10 @@ const Login = () => {
     if (!validate()) return;
 
     try {
-      const { token, section } = await login(email, password);
-
+      const { token, section: currentSection } = await login(email, password);
       sessionStorage.setItem("token", token);
-      sessionStorage.setItem("section", section);
-
-      if (section === 1) navigate("/section-1");
-      else if (section === 2) navigate("/section-2");
+      sessionStorage.setItem("currentSection", currentSection.toString());
+      navigate(`/section-${currentSection}`);
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed");
     }

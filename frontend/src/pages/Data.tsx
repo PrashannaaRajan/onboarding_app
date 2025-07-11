@@ -25,7 +25,7 @@ const Data = () => {
 
   useEffect(() => {
     getUserData()
-      .then((res) => setUsers(res.data))
+      .then((res) => setUsers(res))
       .catch(() => setError("Failed to fetch user data"))
       .finally(() => setLoading(false));
   }, []);

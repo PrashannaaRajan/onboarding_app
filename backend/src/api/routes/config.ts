@@ -1,5 +1,5 @@
 import express from "express";
-import { getConfig, updateConfig } from "../controllers/adminController";
+import { getConfig, updateConfig } from "../controllers/configController";
 
 const router = express.Router();
 
